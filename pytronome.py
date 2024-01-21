@@ -4,8 +4,6 @@ import time
 import numpy as np
 import sounddevice as sd
 import multiprocessing as mp
-from pydub import AudioSegment
-from pydub.playback import play
 
 class Pytronome:
     def __init__(self, root):
@@ -14,7 +12,6 @@ class Pytronome:
         self.root.title("Pytronome")
         self.root.geometry("450x450")
         self.root.resizable(False, False)
-        self.click_file = AudioSegment.from_wav("sounds/MetroBar1.wav")
         self.start_stop_state = tk.IntVar()
         self.start_stop_state.set(0)
         self.bpm = tk.IntVar(value=120)
@@ -114,8 +111,9 @@ class Pytronome:
     def play_click(self):
         while self.start_stop_state.get():
             start = time.time()
-            #self.play_beep()
-            time.sleep(self.seconds_per_beat - 0.065)
+            self.play_beep()
+            # Subtract 0.01 due to  slowness in the sounddevice play() call
+            time.sleep(self.seconds_per_beat - 0.01)
             end = time.time()
             print(end - start)
                
@@ -127,7 +125,6 @@ class Pytronome:
     def play_beep(self, beep_duration=0.05, beep_frequency=500, sampling_rate=44100):
         beep_signal = self.generate_sine_wave(beep_duration, beep_frequency, sampling_rate)
         sd.play(beep_signal, samplerate=sampling_rate)
-        sd.wait()  # Wait for playback to finish
         
 # Required when spawning multiple processes
 if __name__ == '__main__':    
