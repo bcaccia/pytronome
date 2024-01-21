@@ -16,6 +16,7 @@ class Pytronome:
         self.start_stop_state.set(0)
         self.bpm = tk.IntVar(value=120)
         self.seconds_per_beat = 0.5
+        self.tap_tempo_taps = []
 
         # Create top frame
         self.top_frame = tk.Frame(self.root, bg="black", height=150)
@@ -90,8 +91,30 @@ class Pytronome:
         pass
 
     def tap_button_clicked(self):
-        # Handle tap button click
-        pass
+        # At least 4 taps are required by the user to
+        # calculate a new BPM value
+        self.tap_tempo_taps.append(time.time())
+        # Check if it has been more than 3 secs since last tap
+        # If so, reset the tap tempo list
+        if (self.tap_tempo_taps[-1] - self.tap_tempo_taps[0]) < 3:
+            if len(self.tap_tempo_taps) == 4:
+                # Calculate the diff in seconds between the first and second
+                # and third and fourth taps, then average between them
+                tap_diff1 = self.tap_tempo_taps[1] - self.tap_tempo_taps[0]
+                tap_diff2 = self.tap_tempo_taps[3] - self.tap_tempo_taps[2]
+                tap_average = (tap_diff1 + tap_diff2) / 2
+                self.tap_tempo_taps = []
+                # Round tap times to the 2nd decimal place, no need for
+                # greater accuracy
+                self.seconds_per_beat = round(tap_average, 2)
+                # Do the math to convert from ms to BPM
+                new_bpm = 60000 / (self.seconds_per_beat * 1000)
+                self.bpm.set(round(new_bpm))
+                print(tap_average)
+                print(round(new_bpm))
+        else:
+            self.tap_tempo_taps = []
+            print("Taps reset")
     
     def toggle_start_stop_state(self):
         current_state = self.start_stop_state.get()
