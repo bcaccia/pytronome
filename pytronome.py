@@ -10,7 +10,7 @@ class Pytronome:
         # Set up the root window        
         self.root = root
         self.root.title("Pytronome")
-        self.root.geometry("450x450")
+        self.root.geometry("450x350")
         self.root.resizable(False, False)
         self.start_stop_state = tk.IntVar()
         self.start_stop_state.set(0)
@@ -62,16 +62,9 @@ class Pytronome:
 
         self.tap_button = tk.Button(self.button_frame, text="Tap", command=self.tap_button_clicked)
         self.start_button = tk.Button(self.button_frame, text="Start", command=self.toggle_start_stop_state)
+        root.bind("<space>", self.toggle_start_stop_state)
         self.tap_button.pack(side=tk.LEFT, padx=5)
         self.start_button.pack(side=tk.LEFT, padx=5)
-
-        # Create bottom frame
-        self.bottom_frame = tk.Frame(self.root, bg="blue", height=150)
-        self.bottom_frame.pack(fill=tk.BOTH, expand=True)
-
-        # Widget in the bottom frame
-        self.label_count = tk.Label(self.bottom_frame, text="1", font=("Helvetica", 48), fg="white", bg="blue")
-        self.label_count.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         
     def update_bpm(self, *args):
         try:
@@ -116,7 +109,7 @@ class Pytronome:
             self.tap_tempo_taps = []
             print("Taps reset")
     
-    def toggle_start_stop_state(self):
+    def toggle_start_stop_state(self, *args):
         current_state = self.start_stop_state.get()
         # Toggle the state
         self.start_stop_state.set(1 - current_state)
