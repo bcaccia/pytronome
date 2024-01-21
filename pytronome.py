@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import ttk
 import time
+import numpy as np
+import sounddevice as sd
 import multiprocessing as mp
 from pydub import AudioSegment
 from pydub.playback import play
@@ -15,18 +17,23 @@ class Pytronome:
         self.click_file = AudioSegment.from_wav("sounds/MetroBar1.wav")
         self.start_stop_state = tk.IntVar()
         self.start_stop_state.set(0)
+        self.bpm = tk.IntVar(value=120)
+        self.seconds_per_beat = 0.5
 
         # Create top frame
         self.top_frame = tk.Frame(self.root, bg="black", height=150)
         self.top_frame.pack(fill=tk.BOTH, expand=True)
 
-        # Widgets in the top frame
+        # BPM label and widget
         self.label_bpm = tk.Label(self.top_frame, text="BPM", font=("Helvetica", 16), fg="white", bg="black")
         self.label_bpm.pack(pady=10)
 
-        self.spinbox_bpm = tk.Spinbox(self.top_frame, from_=30, to=300, width=5)
+        self.spinbox_bpm = tk.Spinbox(self.top_frame, from_=30, to=300, width=5, textvariable=self.bpm, command=self.update_bpm)
+        # Handle the user pressing Enter or Keypad Enter on manual number entry
+        self.spinbox_bpm.bind("<KeyRelease>", self.update_bpm)
         self.spinbox_bpm.pack(pady=10)
 
+        # Time signature label
         self.label_time_signature = tk.Label(self.top_frame, text="Time Signature", font=("Helvetica", 16), fg="white", bg="black")
         self.label_time_signature.pack(pady=10)
         
@@ -68,7 +75,20 @@ class Pytronome:
         self.label_count = tk.Label(self.bottom_frame, text="1", font=("Helvetica", 48), fg="white", bg="blue")
         self.label_count.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
         
-    def get_selected_time_division():
+    def update_bpm(self, *args):
+        try:
+            self.bpm.set(self.bpm.get())
+            self.calc_bpm_to_ms()
+        except ValueError:
+            print("Invalid BPM value")
+            pass
+        
+    def calc_bpm_to_ms(self):
+        milliseconds_per_beat = 60000 / int(self.bpm.get())
+        self.seconds_per_beat = milliseconds_per_beat / 1000
+        print(f'Seconds per beat: {self.seconds_per_beat}')
+        
+    def get_selected_time_division(self):
         # Handle combobox time division selection
         pass
 
@@ -82,7 +102,7 @@ class Pytronome:
         self.start_stop_state.set(1 - current_state)
         if self.start_stop_state.get() == 1:
             self.start_button.config(text="Stop")
-            self.click_process = mp.Process(target=self.play_click_values)
+            self.click_process = mp.Process(target=self.play_click)
             self.click_process.start()
         else:
             self.start_button.config(text="Start")
@@ -91,9 +111,23 @@ class Pytronome:
             self.click_process.join()
         print(self.start_stop_state.get())
         
-    def play_click_values(self):
+    def play_click(self):
         while self.start_stop_state.get():
-            play(self.click_file)
+            start = time.time()
+            #self.play_beep()
+            time.sleep(self.seconds_per_beat - 0.065)
+            end = time.time()
+            print(end - start)
+               
+    def generate_sine_wave(self, duration, frequency, sampling_rate):
+        t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
+        sine_wave = 0.5 * np.sin(2 * np.pi * frequency * t)
+        return sine_wave
+    
+    def play_beep(self, beep_duration=0.05, beep_frequency=500, sampling_rate=44100):
+        beep_signal = self.generate_sine_wave(beep_duration, beep_frequency, sampling_rate)
+        sd.play(beep_signal, samplerate=sampling_rate)
+        sd.wait()  # Wait for playback to finish
         
 # Required when spawning multiple processes
 if __name__ == '__main__':    
