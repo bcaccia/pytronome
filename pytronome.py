@@ -60,8 +60,9 @@ class Pytronome:
         self.button_frame = tk.Frame(self.top_frame, bg="black")
         self.button_frame.pack(pady=10)
 
-        self.tap_button = tk.Button(self.button_frame, text="Tap", command=self.tap_button_clicked)
-        self.start_button = tk.Button(self.button_frame, text="Start", command=self.toggle_start_stop_state)
+        self.tap_button = tk.Button(self.button_frame, text="Tap (t)", command=self.tap_button_clicked)
+        root.bind(("t"), self.tap_button_clicked)
+        self.start_button = tk.Button(self.button_frame, text="Start (spc)", command=self.toggle_start_stop_state)
         root.bind("<space>", self.toggle_start_stop_state)
         self.tap_button.pack(side=tk.LEFT, padx=5)
         self.start_button.pack(side=tk.LEFT, padx=5)
@@ -83,7 +84,7 @@ class Pytronome:
         # Handle combobox time division selection
         pass
 
-    def tap_button_clicked(self):
+    def tap_button_clicked(self, *args):
         # At least 4 taps are required by the user to
         # calculate a new BPM value
         self.tap_tempo_taps.append(time.time())
@@ -114,11 +115,11 @@ class Pytronome:
         # Toggle the state
         self.start_stop_state.set(1 - current_state)
         if self.start_stop_state.get() == 1:
-            self.start_button.config(text="Stop")
+            self.start_button.config(text="Stop (spc)")
             self.click_process = mp.Process(target=self.play_click)
             self.click_process.start()
         else:
-            self.start_button.config(text="Start")
+            self.start_button.config(text="Start (spc)")
             self.start_stop_state.set(0)
             self.click_process.terminate()
             self.click_process.join()
