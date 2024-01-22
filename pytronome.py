@@ -10,7 +10,7 @@ class Pytronome:
         # Set up the root window        
         self.root = root
         self.root.title("Pytronome")
-        self.root.geometry("450x350")
+        self.root.geometry("300x250")
         self.root.resizable(False, False)
         self.start_stop_state = tk.IntVar()
         self.start_stop_state.set(0)
@@ -39,23 +39,17 @@ class Pytronome:
         self.timesig_frame = tk.Frame(self.top_frame, bg="black")
         self.timesig_frame.pack()
 
-        # Spinnerbox for timesig_1
-        self.timesig_1 = tk.Spinbox(self.timesig_frame, from_=1, to=12, width=2)
+        # Combobox for timesig_1
+        self.timesig1_values = list(range(1, 17))
+        self.timesig_1 = ttk.Combobox(self.timesig_frame, values=self.timesig1_values, state="readonly", width=4)
+        self.timesig_1.set(1)
         self.timesig_1.pack(side=tk.LEFT, padx=5)
 
-        # Spinnerbox for timesig_2
-        self.timesig_2 = tk.Spinbox(self.timesig_frame, from_=1, to=12, width=2)
+        # Combobox for timesig_2
+        self.timesig2_values = [1, 2, 4, 8]
+        self.timesig_2 = ttk.Combobox(self.timesig_frame, values=self.timesig2_values, state="readonly", width=4)
+        self.timesig_2.set(4)
         self.timesig_2.pack(side=tk.LEFT, padx=5)
-        
-        self.label_time_division = tk.Label(self.top_frame, text="Time Division", font=("Helvetica", 16), fg="white", bg="black")
-        self.label_time_division.pack(pady=10)
-
-        # Combo box for Time Division
-        time_division_options = ["1/1", "1/2", "1/4", "1/8", "1/16", "1/32"]
-        self.combo_time_division = ttk.Combobox(self.top_frame, values=time_division_options)
-        self.combo_time_division.set("1/4")  # Set default value to 1/4
-        self.combo_time_division.bind("<<ComboboxSelected>>", self.get_selected_time_division)
-        self.combo_time_division.pack(pady=10)
 
         self.button_frame = tk.Frame(self.top_frame, bg="black")
         self.button_frame.pack(pady=10)
@@ -69,7 +63,6 @@ class Pytronome:
         
     def update_bpm(self, *args):
         try:
-            self.bpm.set(self.bpm.get())
             self.calc_bpm_to_ms()
         except ValueError:
             print("Invalid BPM value")
@@ -127,12 +120,19 @@ class Pytronome:
         
     def play_click(self):
         while self.start_stop_state.get():
-            start = time.time()
-            self.play_beep()
-            # Subtract 0.01 due to  slowness in the sounddevice play() call
-            time.sleep(self.seconds_per_beat - 0.01)
-            end = time.time()
-            print(end - start)
+            for beat in range(int(self.timesig_1.get())):
+                start = time.time()
+                print(f'beat: {beat + 1}')
+                # Check if the value is larger than 1 and if so play the
+                # accent on the first beat
+                if beat == 0 and int(self.timesig_1.get()) > 1:
+                    self.play_beep(beep_frequency=1000)
+                else:
+                    self.play_beep(beep_frequency=500)
+                # Subtract 0.01 due to  slowness in the sounddevice play() call
+                time.sleep(self.seconds_per_beat - 0.01)
+                end = time.time()
+                print(end - start)
                
     def generate_sine_wave(self, duration, frequency, sampling_rate):
         t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)
