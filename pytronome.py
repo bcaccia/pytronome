@@ -72,10 +72,6 @@ class Pytronome:
         milliseconds_per_beat = 60000 / int(self.bpm.get())
         self.seconds_per_beat = milliseconds_per_beat / 1000
         print(f'Seconds per beat: {self.seconds_per_beat}')
-        
-    def get_selected_time_division(self):
-        # Handle combobox time division selection
-        pass
 
     def tap_button_clicked(self, *args):
         # At least 4 taps are required by the user to
